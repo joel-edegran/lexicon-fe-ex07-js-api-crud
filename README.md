@@ -6,4 +6,4 @@
 * **Track:** Frontend
 * **Course:** JavaScript
 
-**Tags:** `javascript`, `vite`
+**Tags:** `javascript`, `crud`, `async-await`, `fetch-api`, `csharp`, `dotnet`, `webapi`, `rest-api`, `fullstack`, `vite`
