@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <title>Minimal F12 API Demo</title>
+</head>
+<body>
+
+    <h1>Minimal API Demo (Öppna F12!)</h1>
+    <p>Öppna utvecklarverktygen i webbläsaren och titta på flikarna <strong>Console</strong> och <strong>Network</strong> när du klickar.</p>
+
+    <div style="display: flex; gap: 10px;">
+        <button onclick="runGet()">1. GET (Hämta alla)</button>
+        <button onclick="runPost()">2. POST (Skapa testbil)</button>
+        <button onclick="runPut()">3. PUT (Uppdatera ID 1)</button>
+        <button onclick="runDelete()">4. DELETE (Ta bort ID 1)</button>
+    </div>
+
+    <script>
+        // Ändra porten så den matchar din rullande .NET-applikation!
+        const API_URL = "https://localhost:7187/api/cars";
+
+        // ==========================================
+        // 1. GET ALLA
+        // ==========================================
+        async function runGet() {
+            console.log("--- Skickar GET ---");
+            const response = await fetch(API_URL);
+            const bilar = await response.json();
+            
+            console.log("Statuskod:", response.status);
+            console.log("Data från databasen:", bilar);
+        }
+
+        // ==========================================
+        // 2. POST (SKAPA)
+        // ==========================================
+        async function runPost() {
+            console.log("--- Skickar POST ---");
+            const nyBil = {
+                brand: "Volvo",
+                model: "740 GLE",
+                year: 1988,
+                color: "Röd"
+            };
+
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(nyBil)
+            });
+            const data = await response.json();
+
+            console.log("Statuskod:", response.status);
+            console.log("Skapad resurs:", data);
+        }
+
+        // ==========================================
+        // 3. PUT (UPPDATERA ID 1)
+        // ==========================================
+        async function runPut() {
+            console.log("--- Skickar PUT för ID 1 ---");
+            const uppdateradBil = {
+                id: 1, // ID måste matcha URL:en och databasen
+                brand: "Volvo",
+                model: "244 Turbo (Trimmad)",
+                year: 1978,
+                color: "Svart"
+            };
+
+            const response = await fetch(`${API_URL}/1`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(uppdateradBil)
+            });
+
+            console.log("Statuskod (bör vara 204 No Content):", response.status);
+        }
+
+        // ==========================================
+        // 4. DELETE (RADERA ID 1)
+        // ==========================================
+        async function runDelete() {
+            console.log("--- Skickar DELETE för ID 1 ---");
+            const response = await fetch(`${API_URL}/1`, {
+                method: 'DELETE'
+            });
+            const data = await response.json();
+
+            console.log("Statuskod:", response.status);
+            console.log("Svar från server:", data);
+        }
+    </script>
+
+</body>
+</html>
