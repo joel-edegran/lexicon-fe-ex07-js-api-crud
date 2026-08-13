@@ -3,10 +3,56 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>frontend</title>
+    <title>Roger's Retro Cars</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
   </head>
   <body>
-    <div id="app"></div>
+    <header>
+        <h1>My Cars</h1>
+        <p>Enkel frontend som pratar med vårt Minimal API</p>
+    </header>
+    <main>
+        <section id="form-section">
+            <h3 id="form-title">Lägg till ny bil</h3>
+            <form id="car-form">
+                <input type="hidden" id="car-id">
+                <div class="grid">
+                    <label>
+                        Märke
+                        <input type="text" id="brand" placeholder="t.ex. Volvo" required>
+                    </label>
+                    <label>
+                        Modell
+                        <input type="text" id="model" placeholder="t.ex. 240 Turbo" required>
+                    </label>
+                </div>
+                <div class="grid">
+                    <label>
+                        Årsmodell
+                        <input type="number" id="year" placeholder="t.ex. 1983" required>
+                    </label>
+                    <label>
+                        Färg
+                        <input type="text" id="color" placeholder="t.ex. Silver" required>
+                    </label>
+                </div>
+                <div style="display: flex; gap: 1rem;">
+                    <button type="submit" id="submit-btn" style="flex: 3;">Spara bil</button>
+                    <button type="button" id="cancel-btn" class="secondary" style="flex: 1; display: none;">Avbryt</button>
+                </div>
+            </form>
+        </section>
+        <hr>
+        <section>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h3>Våra bilar i databasen</h3>
+                <button id="load-btn" class="secondary" style="width: auto;">Hämta bilar</button>
+            </div>
+            <div id="car-list">
+                <p>Klicka på knappen för att ladda in bilar...</p>
+            </div>
+        </section>
+    </main>
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>

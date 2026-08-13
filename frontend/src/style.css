@@ -1,0 +1,21 @@
+.car-card {
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.btn-group {
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* Knapp i redigeringsläge */
+
+.editing {
+    background-color: #e65100 !important;
+    border-color: #e65100 !important;
+}
