@@ -1,3 +1,13 @@
+body {
+    padding-inline: 1rem;
+}
+
+body>header, 
+body>main {
+    max-width: 580px;
+    margin: 0 auto;
+}
+
 .car-card {
     padding: 1rem;
     margin-bottom: 1rem;
@@ -18,4 +28,22 @@
 .editing {
     background-color: #e65100 !important;
     border-color: #e65100 !important;
+}
+
+@media (min-width: 992px) {
+    body {
+        padding-inline: 2rem;
+    }
+
+    body>header, 
+    body>main {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    body>main {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+    }
 }
