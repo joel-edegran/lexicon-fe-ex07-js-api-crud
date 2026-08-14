@@ -12,8 +12,6 @@ const formTitle = document.querySelector('#form-title');
 const submitBtn = document.querySelector('#submit-btn');
 const cancelBtn = document.querySelector('#cancel-btn');
 
-
-
 // ==========================================
 // 🟢 READ (GET) - Hämta och visa alla bilar
 // ==========================================
@@ -58,7 +56,7 @@ const fetchCars = async () => {
     }
 };
 
-const handleFormSubmit = async (event) => {
+const addCar = async (event) => {
     event.preventDefault();
 
     const carData = {
@@ -68,59 +66,30 @@ const handleFormSubmit = async (event) => {
         color: carForm.color.value
     };
 
-    const carId = carIdInput.value;
+    try {
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(carData)
+        });
 
-    if (carId) {
-        // Uppdatera befintlig bil (PUT)
-        try {
-            const response = await fetch(`${API_URL}/${carId}`, {
-
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(carData)
-            });
-
-            if (!response.ok) {
-                throw new Error(`Fel vid uppdatering: ${response.status}`);
-            }
-
-            // Rensa formuläret och återställ till "Lägg till bil"
-            carForm.reset();
-            carIdInput.value = '';
-            formTitle.textContent = 'Lägg till bil';
-            submitBtn.textContent = 'Lägg till';
-            cancelBtn.style.display = 'none';
-            fetchCars(); // Uppdatera listan
-        } catch (error) {
-            console.error("Fel:", error);
-            alert("Kunde inte uppdatera bilen.");
+        if (!response.ok) {
+            throw new Error(`Fel vid skapande: ${response.status}`);
         }
-    } else {
-        // Skapa ny bil (POST)
-        try {
-            const response = await fetch(API_URL, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(carData)
-            });
-            if (!response.ok) {
-                throw new Error(`Fel vid skapande: ${response.status}`);
-            }
-            // Rensa formuläret och uppdatera listan
-            carForm.reset();
-            fetchCars();
-        } catch (error) {
-            console.error("Fel:", error);
-            alert("Kunde inte skapa bilen.");
-        }
+        
+        carForm.reset();
+        fetchCars();
+
+    } catch (error) {
+        console.error("Fel:", error);
+        alert("Kunde inte skapa bilen.");
     }
+    
 };
 
 
 // Event
 loadBtn.addEventListener('click', fetchCars);
-carForm.addEventListener('submit', handleFormSubmit);
+carForm.addEventListener('submit', addCar);
