@@ -1,7 +1,7 @@
 import './style.css'
 
 // 1. Inställningar (Anpassad till din HTTPS-port från Visual Studio)
-const API_URL = "https://localhost:5111/api/cars";
+const API_URL = "http://localhost:5111/api/cars";
 
 // 2. DOM-referenser
 const loadBtn = document.querySelector('#load-btn');
