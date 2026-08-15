@@ -14,7 +14,7 @@
     <main>
         <section id="form-section">
             <h3 id="form-title">Lägg till ny bil</h3>
-            <form id="car-form">
+            <form id="form">
                 <input type="hidden" id="car-id">
                 <div class="grid">
                     <label>
@@ -48,9 +48,9 @@
                 <h3>Våra bilar i databasen</h3>
                 <button id="load-btn" class="secondary" style="width: auto;">Hämta bilar</button>
             </div>
-            <div id="car-list">
-                <p>Klicka på knappen för att ladda in bilar...</p>
-            </div>
+            <ul id="list">
+                <li class="list-item card"><p>Klicka på knappen för att ladda in bilar...</p></li>
+            </ul>
         </section>
     </main>
     <script type="module" src="/src/main.js"></script>
