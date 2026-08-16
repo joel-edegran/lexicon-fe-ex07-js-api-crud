@@ -1,126 +1,131 @@
 import './style.css'
 
-// 1. Inställningar (Anpassad till din HTTPS-port från Visual Studio)
-const API_URL = "http://localhost:5111/api/cars";
+const API_URL       = "http://localhost:5111/api/cars";
 
-// 2. DOM-referenser
-const loadBtn = document.querySelector('#load-btn');
-const carList = document.querySelector('#car-list');
-const carForm = document.querySelector('#car-form');
-const carIdInput = document.querySelector('#car-id');
-const formTitle = document.querySelector('#form-title');
-const submitBtn = document.querySelector('#submit-btn');
-const cancelBtn = document.querySelector('#cancel-btn');
+const loadBtn       = document.querySelector('#load-btn');
+const list          = document.querySelector('#list');
+const form          = document.querySelector('#form');
+const carIdInput    = document.querySelector('#car-id');
+const formTitle     = document.querySelector('#form-title');
+const submitBtn     = document.querySelector('#submit-btn');
+const cancelBtn     = document.querySelector('#cancel-btn');
+
+// State flag
+let isCarsLoaded    = false;
+
+// Functions
 
 
+// Helper functions
 
-// ==========================================
-// 🟢 READ (GET) - Hämta och visa alla bilar
-// ==========================================
-const fetchCars = async () => {
-    try {
-        const response = await fetch(API_URL);
-        
-        if (!response.ok) {
-            throw new Error(`Fel vid hämtning: ${response.status}`);
-        }
+// Helper function to render a car item in the list
+const renderCar = (car) => {
+    const item = document.createElement('li');
+    item.className = 'list-item card';
+    item.dataset.id = car.id;
+    item.innerHTML = `
+        <div>
+            <strong>${car.brand} ${car.model}</strong> (${car.year}) <br>
+            <span style="font-size: 0.9rem; color: #777;">Färg: ${car.color}</span>
+        </div>
+        <div class="btn-group">
+            <button class="outline" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" onclick="prepareEdit(${JSON.stringify(car).replace(/"/g, '&quot;')})">Redigera</button>
+            <button class="outline contrast" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" onclick="deleteCar(${car.id})">Ta bort</button>
+        </div>
+    `;
+    list.appendChild(item);
+}
 
-        const cars = await response.json();
-        
-        // Töm listan innan vi ritar ut på nytt
-        carList.innerHTML = "";
+// Helper function to format response status
+const formatStatus = (response) => `${response.status} (${response.statusText})`;
 
-        if (cars.length === 0) {
-            carList.innerHTML = "<p>Det finns inga bilar i databasen.</p>";
-            return;
-        }
-
-        // Loopa igenom bilarna och bygg HTML för varje kort
-        cars.forEach(car => {
-            const card = document.createElement('div');
-            card.className = 'car-card';
-            card.innerHTML = `
-                <div>
-                    <strong>${car.brand} ${car.model}</strong> (${car.year}) <br>
-                    <span style="font-size: 0.9rem; color: #777;">Färg: ${car.color}</span>
-                </div>
-                <div class="btn-group">
-                    <button class="outline" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" onclick="prepareEdit(${JSON.stringify(car).replace(/"/g, '&quot;')})">Redigera</button>
-                    <button class="outline contrast" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" onclick="deleteCar(${car.id})">Ta bort</button>
-                </div>
-            `;
-            carList.appendChild(card);
-        });
-
-    } catch (error) {
-        console.error("Fel:", error);
-        carList.innerHTML = `<p style="color: red;">Kunde inte hämta bilar. Körs ditt API på ${API_URL}?</p>`;
-    }
+// Helper function to log HTTP response status
+const logStatus = (response, label = '') => {
+    const prefix = label ? `[${label}] ` : '';
+    console.log(`${prefix}Status: ${formatStatus(response)}`);
 };
 
-const handleFormSubmit = async (event) => {
+// Create
+const addCar = async (event) => {
     event.preventDefault();
 
     const carData = {
-        brand: carForm.brand.value,
-        model: carForm.model.value,
-        year: parseInt(carForm.year.value),
-        color: carForm.color.value
+        brand: form.brand.value,
+        model: form.model.value,
+        year: parseInt(form.year.value),
+        color: form.color.value
     };
 
-    const carId = carIdInput.value;
+    try {
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(carData)
+        });
 
-    if (carId) {
-        // Uppdatera befintlig bil (PUT)
-        try {
-            const response = await fetch(`${API_URL}/${carId}`, {
+        logStatus(response, "Create");
 
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(carData)
-            });
-
-            if (!response.ok) {
-                throw new Error(`Fel vid uppdatering: ${response.status}`);
-            }
-
-            // Rensa formuläret och återställ till "Lägg till bil"
-            carForm.reset();
-            carIdInput.value = '';
-            formTitle.textContent = 'Lägg till bil';
-            submitBtn.textContent = 'Lägg till';
-            cancelBtn.style.display = 'none';
-            fetchCars(); // Uppdatera listan
-        } catch (error) {
-            console.error("Fel:", error);
-            alert("Kunde inte uppdatera bilen.");
+        if (!response.ok) {
+            throw new Error(`Error creating car: ${formatStatus(response)}`);
         }
-    } else {
-        // Skapa ny bil (POST)
-        try {
-            const response = await fetch(API_URL, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(carData)
-            });
-            if (!response.ok) {
-                throw new Error(`Fel vid skapande: ${response.status}`);
-            }
-            // Rensa formuläret och uppdatera listan
-            carForm.reset();
-            fetchCars();
-        } catch (error) {
-            console.error("Fel:", error);
-            alert("Kunde inte skapa bilen.");
+
+        if (!isCarsLoaded) {
+            // If the list of cars hasn't been loaded yet, fetch and render all cars
+            await fetchCars();
+        } else {
+            // If the list of cars is already loaded, just render the new car
+            const car = await response.json();
+            renderCar(car);
+            console.log("Adding car to list from response:", car);
         }
+        
+        form.reset();
+
+    } catch (error) {
+        console.error("Error:", error);
+        alert("Could not add car.");
+    }
+    
+};
+
+// Read
+const fetchCars = async () => {
+    try {
+        const response = await fetch(API_URL);
+        logStatus(response, "Read");
+        
+        if (!response.ok) {
+            throw new Error(`Error fetching cars: ${formatStatus(response)}`);
+        }
+
+        const cars = await response.json();
+        console.log("Data from database:", cars);
+        
+        list.innerHTML = "";
+
+        if (cars.length === 0) {
+            list.innerHTML = `<li class="list-item card"><p>Det finns inga bilar i databasen.</p></li>`;
+            return;
+        }
+
+        cars.forEach(car => renderCar(car));
+
+        isCarsLoaded = true;
+
+    } catch (error) {
+        console.error("Error:", error);
+        alert("Could not fetch cars.");
     }
 };
+
+// Update
+
+
+// Delete
 
 
 // Event
 loadBtn.addEventListener('click', fetchCars);
-carForm.addEventListener('submit', handleFormSubmit);
+form.addEventListener('submit', addCar);
