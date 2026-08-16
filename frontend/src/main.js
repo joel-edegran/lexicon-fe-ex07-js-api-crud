@@ -10,8 +10,15 @@ const formTitle     = document.querySelector('#form-title');
 const submitBtn     = document.querySelector('#submit-btn');
 const cancelBtn     = document.querySelector('#cancel-btn');
 
+// State flag
+let isCarsLoaded    = false;
+
 // Functions
 
+
+// Helper functions
+
+// Helper function to render a car item in the list
 const renderCar = (car) => {
     const item = document.createElement('li');
     item.className = 'list-item card';
@@ -28,6 +35,15 @@ const renderCar = (car) => {
     `;
     list.appendChild(item);
 }
+
+// Helper function to format response status
+const formatStatus = (response) => `${response.status} (${response.statusText})`;
+
+// Helper function to log HTTP response status
+const logStatus = (response, label = '') => {
+    const prefix = label ? `[${label}] ` : '';
+    console.log(`${prefix}Status: ${formatStatus(response)}`);
+};
 
 // Create
 const addCar = async (event) => {
@@ -49,24 +65,23 @@ const addCar = async (event) => {
             body: JSON.stringify(carData)
         });
 
+        logStatus(response, "Create");
+
         if (!response.ok) {
-            throw new Error(`Error creating car: ${response.status}`);
+            throw new Error(`Error creating car: ${formatStatus(response)}`);
         }
 
-        const car = await response.json();
-        
         if (!isCarsLoaded) {
             // If the list of cars hasn't been loaded yet, fetch and render all cars
             await fetchCars();
         } else {
             // If the list of cars is already loaded, just render the new car
+            const car = await response.json();
             renderCar(car);
+            console.log("Adding car to list from response:", car);
         }
         
         form.reset();
-
-        console.log("Status:", response.status);
-        console.log("Response:", car);
 
     } catch (error) {
         console.error("Error:", error);
@@ -79,12 +94,14 @@ const addCar = async (event) => {
 const fetchCars = async () => {
     try {
         const response = await fetch(API_URL);
+        logStatus(response, "Read");
         
         if (!response.ok) {
-            throw new Error(`Error fetching cars: ${response.status}`);
+            throw new Error(`Error fetching cars: ${formatStatus(response)}`);
         }
 
         const cars = await response.json();
+        console.log("Data from database:", cars);
         
         list.innerHTML = "";
 
@@ -96,9 +113,6 @@ const fetchCars = async () => {
         cars.forEach(car => renderCar(car));
 
         isCarsLoaded = true;
-
-        console.log("Status:", response.status);
-        console.log("Data from database:", cars);
 
     } catch (error) {
         console.error("Error:", error);
