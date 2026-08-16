@@ -50,17 +50,27 @@ const addCar = async (event) => {
         });
 
         if (!response.ok) {
-            throw new Error(`Fel vid skapande: ${response.status}`);
+            throw new Error(`Error creating car: ${response.status}`);
         }
 
         const car = await response.json();
-        renderCar(car);
+        
+        if (!isCarsLoaded) {
+            // If the list of cars hasn't been loaded yet, fetch and render all cars
+            await fetchCars();
+        } else {
+            // If the list of cars is already loaded, just render the new car
+            renderCar(car);
+        }
         
         form.reset();
 
+        console.log("Status:", response.status);
+        console.log("Response:", car);
+
     } catch (error) {
-        console.error("Fel:", error);
-        alert("Kunde inte skapa bilen.");
+        console.error("Error:", error);
+        alert("Could not add car.");
     }
     
 };
@@ -71,12 +81,11 @@ const fetchCars = async () => {
         const response = await fetch(API_URL);
         
         if (!response.ok) {
-            throw new Error(`Fel vid hämtning: ${response.status}`);
+            throw new Error(`Error fetching cars: ${response.status}`);
         }
 
         const cars = await response.json();
         
-        // Töm listan innan vi ritar ut på nytt
         list.innerHTML = "";
 
         if (cars.length === 0) {
@@ -84,12 +93,16 @@ const fetchCars = async () => {
             return;
         }
 
-        // Loopa igenom bilarna och bygg HTML för varje kort
         cars.forEach(car => renderCar(car));
 
+        isCarsLoaded = true;
+
+        console.log("Status:", response.status);
+        console.log("Data from database:", cars);
+
     } catch (error) {
-        console.error("Fel:", error);
-        alert(`<li class="list-item card"><p style="color: red;">Kunde inte hämta bilar. Körs ditt API på ${API_URL}?</p></li>`);
+        console.error("Error:", error);
+        alert("Could not fetch cars.");
     }
 };
 
