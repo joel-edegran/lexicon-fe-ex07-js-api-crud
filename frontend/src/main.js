@@ -3,7 +3,7 @@ import './style.css'
 const API_URL       = "http://localhost:5111/api/cars";
 
 const loadBtn       = document.querySelector('#load-btn');
-const list          = document.querySelector('#list');
+const carList       = document.querySelector('#car-list');
 const form          = document.querySelector('#form');
 const carIdInput    = document.querySelector('#car-id');
 const formTitle     = document.querySelector('#form-title');
@@ -20,20 +20,20 @@ let isCarsLoaded    = false;
 
 // Helper function to render a car item in the list
 const renderCar = (car) => {
-    const item = document.createElement('li');
-    item.className = 'list-item card';
-    item.dataset.id = car.id;
-    item.innerHTML = `
+    const carListItem = document.createElement('li');
+    carListItem.className = 'car-list-item card';
+    carListItem.dataset.id = car.id;
+    carListItem.innerHTML = `
         <div>
             <strong>${car.brand} ${car.model}</strong> (${car.year}) <br>
             <span style="font-size: 0.9rem; color: #777;">Färg: ${car.color}</span>
         </div>
         <div class="btn-group">
             <button class="outline" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" onclick="prepareEdit(${JSON.stringify(car).replace(/"/g, '&quot;')})">Redigera</button>
-            <button class="outline contrast" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" onclick="deleteCar(${car.id})">Ta bort</button>
+            <button class="delete-btn outline contrast" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">Ta bort</button>
         </div>
     `;
-    list.appendChild(item);
+    carList.appendChild(carListItem);
 }
 
 // Helper function to format response status
@@ -103,10 +103,10 @@ const fetchCars = async () => {
         const cars = await response.json();
         console.log("Data from database:", cars);
         
-        list.innerHTML = "";
+        carList.innerHTML = "";
 
         if (cars.length === 0) {
-            list.innerHTML = `<li class="list-item card"><p>Det finns inga bilar i databasen.</p></li>`;
+            carList.innerHTML = `<li class="car-list-item card"><p>Det finns inga bilar i databasen.</p></li>`;
             return;
         }
 
@@ -124,8 +124,45 @@ const fetchCars = async () => {
 
 
 // Delete
+const deleteCar = async (id) => {
+    if (!confirm("Är du säker på att du vill ta bort bilen?")) {
+        return;
+    }
 
+    try {
+        const response = await fetch(`${API_URL}/${id}`, {
+            method: 'DELETE'
+        });
+
+        logStatus(response, "Delete");
+
+        if (!response.ok) {
+            throw new Error(`Error deleting car: ${formatStatus(response)}`);
+        }
+
+        // Remove the car from the UI
+        const carListItem = document.querySelector(`[data-id="${id}"]`);
+        if (carListItem) {
+            carListItem.remove();
+            console.log(`Successfully removed car with ID ${id} from DOM.`);
+        }
+
+    } catch (error) {
+        console.error("Error:", error);
+        alert("Could not delete car.");
+    }
+};
 
 // Event
 loadBtn.addEventListener('click', fetchCars);
 form.addEventListener('submit', addCar);
+carList.addEventListener('click', (event) => {
+    const deleteBtn = event.target.closest('.delete-btn');
+    if (deleteBtn) {
+        const carListItem = deleteBtn.closest('.car-list-item');
+        const carId = carListItem?.dataset.id;
+        if (carId) {
+            deleteCar(carId);
+        }
+    }
+});
