@@ -67,8 +67,6 @@ const handleFormSubmit = async (event) => {
 
 // Reset form and UI state after submission or cancellation
 const resetForm = () => {
-    clearMessage();
-
     form.reset();
     carIdInput.value = '';
     formTitle.textContent = "Lägg till ny bil";
@@ -132,10 +130,11 @@ const addCar = async (event) => {
         }
         
         resetForm();
+        showMessage('Bilen har lagts till!', 'success');
 
     } catch (error) {
         console.error("Error:", error);
-        alert("Could not add car.");
+        showMessage('Could not add car.', 'danger');
     }
     
 };
@@ -221,10 +220,11 @@ const updateCar = async (id) => {
         }
 
         resetForm();
+        showMessage('Bilen har uppdaterats!', 'success');
 
     } catch (error) {
         console.error("Error:", error);
-        alert("Could not update car.");
+        showMessage('Could not update car.', 'danger');
     }
 };
 
@@ -259,9 +259,15 @@ const deleteCar = async (id) => {
         // Update the cached list of cars
         cars = cars.filter(car => car.id !== numericId); 
 
+        if (cars.length === 0) {
+            showMessage('Det finns inga bilar i databasen.', 'info');
+        } else {
+            showMessage('Bilen har tagits bort!', 'success');
+        }
+
     } catch (error) {
         console.error("Error:", error);
-        alert("Could not delete car.");
+        showMessage('Could not delete car.', 'danger');
     }
 };
 
@@ -291,9 +297,10 @@ const prepareEdit = (id) => {
     formSection.scrollIntoView({ behavior: 'smooth' });
 };
 
-// Event
+// Event Listeners
 loadBtn.addEventListener('click', fetchCars);
 form.addEventListener('submit', handleFormSubmit);
+
 carList.addEventListener('click', (event) => {
     const button = event.target.closest('button[data-action]');
     if (!button) return;
@@ -310,4 +317,11 @@ carList.addEventListener('click', (event) => {
         prepareEdit(carId);
     }
 });
-cancelBtn.addEventListener('click', resetForm);
+
+cancelBtn.addEventListener('click', () => {
+    clearMessage();
+    resetForm();
+});
+
+// Initial state
+showMessage('Klicka på knappen för att ladda in bilar...', 'info');
