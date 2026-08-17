@@ -4,35 +4,39 @@ const API_URL       = "http://localhost:5111/api/cars";
 
 const loadBtn       = document.querySelector('#load-btn');
 const carList       = document.querySelector('#car-list');
+const formSection   = document.querySelector('#form-section');
 const form          = document.querySelector('#form');
 const carIdInput    = document.querySelector('#car-id');
 const formTitle     = document.querySelector('#form-title');
 const submitBtn     = document.querySelector('#submit-btn');
 const cancelBtn     = document.querySelector('#cancel-btn');
 
-// State flag
+// State
 let isCarsLoaded    = false;
+let cars            = [];
 
 // Functions
 
 
 // Helper functions
 
+// Helper function to generate HTML template for a car item
+const createCarHTML = (car) => `
+    <div>
+        <strong>${car.brand} ${car.model}</strong> (${car.year}) <br>
+        <span style="font-size: 0.9rem; color: #777;">Färg: ${car.color}</span>
+    </div>
+    <div class="btn-group">
+        <button data-action="edit" class="outline" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">Redigera</button>
+        <button data-action="delete" class="outline contrast" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">Ta bort</button>
+    </div>`;
+
 // Helper function to render a car item in the list
 const renderCar = (car) => {
     const carListItem = document.createElement('li');
     carListItem.className = 'car-list-item card';
     carListItem.dataset.id = car.id;
-    carListItem.innerHTML = `
-        <div>
-            <strong>${car.brand} ${car.model}</strong> (${car.year}) <br>
-            <span style="font-size: 0.9rem; color: #777;">Färg: ${car.color}</span>
-        </div>
-        <div class="btn-group">
-            <button class="outline" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" onclick="prepareEdit(${JSON.stringify(car).replace(/"/g, '&quot;')})">Redigera</button>
-            <button class="delete-btn outline contrast" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">Ta bort</button>
-        </div>
-    `;
+    carListItem.innerHTML = createCarHTML(car);
     carList.appendChild(carListItem);
 }
 
@@ -45,14 +49,36 @@ const logStatus = (response, label = '') => {
     console.log(`${prefix}Status: ${formatStatus(response)}`);
 };
 
-// Create
-const addCar = async (event) => {
+// Form submission dispatcher to handle both create and update operations
+const handleFormSubmit = async (event) => {
     event.preventDefault();
 
+    const carID = carIdInput.value;
+
+    if (carID) {
+        // Update existing car
+        await updateCar(carID);
+    } else {
+        // Create new car
+        await addCar(event);
+    }
+};
+
+// Reset form and UI state after submission or cancellation
+const resetForm = () => {
+    form.reset();
+    carIdInput.value = '';
+    formTitle.textContent = "Lägg till ny bil";
+    submitBtn.textContent = "Lägg till";
+    cancelBtn.hidden = true;
+}
+
+// Create
+const addCar = async (event) => {
     const carData = {
         brand: form.brand.value,
         model: form.model.value,
-        year: parseInt(form.year.value),
+        year: parseInt(form.year.value, 10),
         color: form.color.value
     };
 
@@ -77,11 +103,12 @@ const addCar = async (event) => {
         } else {
             // If the list of cars is already loaded, just render the new car
             const car = await response.json();
+            cars.push(car); // Update the cached list of cars
             renderCar(car);
             console.log("Adding car to list from response:", car);
         }
         
-        form.reset();
+        resetForm();
 
     } catch (error) {
         console.error("Error:", error);
@@ -100,7 +127,7 @@ const fetchCars = async () => {
             throw new Error(`Error fetching cars: ${formatStatus(response)}`);
         }
 
-        const cars = await response.json();
+        cars = await response.json();
         console.log("Data from database:", cars);
         
         carList.innerHTML = "";
@@ -121,16 +148,65 @@ const fetchCars = async () => {
 };
 
 // Update
+const updateCar = async (id) => {
+    const numericId = Number(id);
 
+    const carData = {
+        brand: form.brand.value,
+        model: form.model.value,
+        year: parseInt(form.year.value, 10),
+        color: form.color.value
+    };
+
+    try {
+        const response = await fetch(`${API_URL}/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(carData)
+        });
+
+        logStatus(response, "Update");
+
+        if (!response.ok) {
+            throw new Error(`Error updating car: ${formatStatus(response)}`);
+        }
+
+        // Get updated car object directly from server response
+        const updatedCar = await response.json();
+
+        // Update the car in the UI
+        const carListItem = document.querySelector(`[data-id="${numericId}"]`);
+        if (carListItem) {
+            carListItem.innerHTML = createCarHTML(updatedCar);
+            console.log(`Successfully updated car with ID ${numericId} in DOM.`);
+        }
+
+        // Update cache
+        const index = cars.findIndex(car => car.id === numericId);
+        if (index !== -1) {
+            cars[index] = updatedCar;
+        }
+
+        resetForm();
+
+    } catch (error) {
+        console.error("Error:", error);
+        alert("Could not update car.");
+    }
+};
 
 // Delete
 const deleteCar = async (id) => {
+    const numericId = Number(id);
+
     if (!confirm("Är du säker på att du vill ta bort bilen?")) {
         return;
     }
 
     try {
-        const response = await fetch(`${API_URL}/${id}`, {
+        const response = await fetch(`${API_URL}/${numericId}`, {
             method: 'DELETE'
         });
 
@@ -141,11 +217,14 @@ const deleteCar = async (id) => {
         }
 
         // Remove the car from the UI
-        const carListItem = document.querySelector(`[data-id="${id}"]`);
+        const carListItem = document.querySelector(`[data-id="${numericId}"]`);
         if (carListItem) {
             carListItem.remove();
-            console.log(`Successfully removed car with ID ${id} from DOM.`);
+            console.log(`Successfully removed car with ID ${numericId} from DOM.`);
         }
+
+        // Update the cached list of cars
+        cars = cars.filter(car => car.id !== numericId); 
 
     } catch (error) {
         console.error("Error:", error);
@@ -153,16 +232,49 @@ const deleteCar = async (id) => {
     }
 };
 
+// Prepare form for editing
+const prepareEdit = (id) => {
+    const numericId = Number(id);
+
+    console.log("Setting up edit form for car ID:", numericId);
+    const car = cars.find(car => car.id === numericId);
+    
+    if (!car) {
+        console.error(`Car with ID ${numericId} not found.`);
+        return;
+    }
+    
+    console.log("Car to edit:", car);
+    carIdInput.value = car.id;
+    form.brand.value = car.brand;
+    form.model.value = car.model;
+    form.year.value = car.year;
+    form.color.value = car.color;
+
+    formTitle.textContent = "Redigera bil";
+    submitBtn.textContent = "Spara ändringar";
+    cancelBtn.hidden = false;
+
+    formSection.scrollIntoView({ behavior: 'smooth' });
+};
+
 // Event
 loadBtn.addEventListener('click', fetchCars);
-form.addEventListener('submit', addCar);
+form.addEventListener('submit', handleFormSubmit);
 carList.addEventListener('click', (event) => {
-    const deleteBtn = event.target.closest('.delete-btn');
-    if (deleteBtn) {
-        const carListItem = deleteBtn.closest('.car-list-item');
-        const carId = carListItem?.dataset.id;
-        if (carId) {
-            deleteCar(carId);
-        }
+    const button = event.target.closest('button[data-action]');
+    if (!button) return;
+    
+    const action = button.dataset.action;
+    const carListItem = button.closest('.car-list-item');
+    const carId = carListItem?.dataset.id;
+
+    if (!carId) return;
+
+    if (action === 'delete') {
+        deleteCar(carId);
+    } else if (action === 'edit') {
+        prepareEdit(carId);
     }
 });
+cancelBtn.addEventListener('click', resetForm);
