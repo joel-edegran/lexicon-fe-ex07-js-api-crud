@@ -177,9 +177,9 @@ const fetchCars = async () => {
         cars = await response.json();
         isCarsLoaded = true;
         console.log("Data from database:", cars);
-        
-        carList.innerHTML = "";
 
+        carList.replaceChildren(); // Clear DOM elements
+        
         if (cars.length === 0) {
             showMessage('Det finns inga bilar i databasen.', 'info');
             return;
@@ -269,6 +269,11 @@ const deleteCar = async (id) => {
 
         if (!response.ok) {
             throw new Error(`Error deleting car: ${formatStatus(response)}`);
+        }
+
+        // Reset form if the car being deleted is currently loaded in the edit form
+        if (Number(carIdInput.value) === numericId) {
+            resetForm();
         }
 
         // Remove the car from the UI
