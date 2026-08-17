@@ -65,6 +65,30 @@ const handleFormSubmit = async (event) => {
     }
 };
 
+// Handler for form cancellation
+const handleCancelClick = () => {
+    clearMessage();
+    resetForm();
+};
+
+// Handler for list action buttons (edit and delete)
+const handleCarListClick = (event) => {
+    const button = event.target.closest('button[data-action]');
+    if (!button) return;
+    
+    const action = button.dataset.action;
+    const carListItem = button.closest('.car-list-item');
+    const carId = carListItem?.dataset.id;
+
+    if (!carId) return;
+
+    if (action === 'delete') {
+        deleteCar(carId);
+    } else if (action === 'edit') {
+        prepareEdit(carId);
+    }
+};
+
 // Reset form and UI state after submission or cancellation
 const resetForm = () => {
     form.reset();
@@ -300,28 +324,8 @@ const prepareEdit = (id) => {
 // Event Listeners
 loadBtn.addEventListener('click', fetchCars);
 form.addEventListener('submit', handleFormSubmit);
-
-carList.addEventListener('click', (event) => {
-    const button = event.target.closest('button[data-action]');
-    if (!button) return;
-    
-    const action = button.dataset.action;
-    const carListItem = button.closest('.car-list-item');
-    const carId = carListItem?.dataset.id;
-
-    if (!carId) return;
-
-    if (action === 'delete') {
-        deleteCar(carId);
-    } else if (action === 'edit') {
-        prepareEdit(carId);
-    }
-});
-
-cancelBtn.addEventListener('click', () => {
-    clearMessage();
-    resetForm();
-});
+carList.addEventListener('click', handleCarListClick);
+cancelBtn.addEventListener('click', handleCancelClick);
 
 // Initial state
 showMessage('Klicka på knappen för att ladda in bilar...', 'info');
