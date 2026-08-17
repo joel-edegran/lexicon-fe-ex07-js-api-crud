@@ -2,14 +2,15 @@ import './style.css'
 
 const API_URL       = "http://localhost:5111/api/cars";
 
-const loadBtn       = document.querySelector('#load-btn');
-const carList       = document.querySelector('#car-list');
-const formSection   = document.querySelector('#form-section');
-const form          = document.querySelector('#form');
-const carIdInput    = document.querySelector('#car-id');
-const formTitle     = document.querySelector('#form-title');
-const submitBtn     = document.querySelector('#submit-btn');
-const cancelBtn     = document.querySelector('#cancel-btn');
+const loadBtn       = document.getElementById('load-btn');
+const carList       = document.getElementById('car-list');
+const formSection   = document.getElementById('form-section');
+const form          = document.getElementById('form');
+const carIdInput    = document.getElementById('car-id');
+const formTitle     = document.getElementById('form-title');
+const submitBtn     = document.getElementById('submit-btn');
+const cancelBtn     = document.getElementById('cancel-btn');
+const statusMessage = document.getElementById('status-message');
 
 // State
 let isCarsLoaded    = false;
@@ -66,6 +67,8 @@ const handleFormSubmit = async (event) => {
 
 // Reset form and UI state after submission or cancellation
 const resetForm = () => {
+    clearMessage();
+
     form.reset();
     carIdInput.value = '';
     formTitle.textContent = "Lägg till ny bil";
@@ -73,8 +76,28 @@ const resetForm = () => {
     cancelBtn.hidden = true;
 }
 
+// Helper functions for status messaging
+const showMessage = (message, type = 'info') => {
+    if (!statusMessage) return;
+
+    statusMessage.textContent = message;
+    statusMessage.className = `alert alert-${type}`;
+    statusMessage.hidden = false;
+};
+
+const clearMessage = () => {
+    if (!statusMessage) return;
+
+    statusMessage.textContent = '';
+    statusMessage.className = '';
+    statusMessage.hidden = true;
+
+};
+
 // Create
 const addCar = async (event) => {
+    clearMessage();
+
     const carData = {
         brand: form.brand.value,
         model: form.model.value,
@@ -119,6 +142,8 @@ const addCar = async (event) => {
 
 // Read
 const fetchCars = async () => {
+    clearMessage();
+
     try {
         const response = await fetch(API_URL);
         logStatus(response, "Read");
@@ -133,7 +158,7 @@ const fetchCars = async () => {
         carList.innerHTML = "";
 
         if (cars.length === 0) {
-            carList.innerHTML = `<li class="car-list-item card"><p>Det finns inga bilar i databasen.</p></li>`;
+            showMessage('Det finns inga bilar i databasen.', 'info');
             return;
         }
 
@@ -143,12 +168,14 @@ const fetchCars = async () => {
 
     } catch (error) {
         console.error("Error:", error);
-        alert("Could not fetch cars.");
+        showMessage('Could not fetch cars.', 'danger');
     }
 };
 
 // Update
 const updateCar = async (id) => {
+    clearMessage();
+
     const numericId = Number(id);
 
     const carData = {
@@ -173,8 +200,12 @@ const updateCar = async (id) => {
             throw new Error(`Error updating car: ${formatStatus(response)}`);
         }
 
-        // Get updated car object directly from server response
-        const updatedCar = await response.json();
+        // Build updated object directly from form data when API returns 204 No Content
+        const updatedCar = {
+            id: numericId,
+            ...carData
+        };
+        console.log(updatedCar);
 
         // Update the car in the UI
         const carListItem = document.querySelector(`[data-id="${numericId}"]`);
@@ -199,6 +230,8 @@ const updateCar = async (id) => {
 
 // Delete
 const deleteCar = async (id) => {
+    clearMessage();
+
     const numericId = Number(id);
 
     if (!confirm("Är du säker på att du vill ta bort bilen?")) {
