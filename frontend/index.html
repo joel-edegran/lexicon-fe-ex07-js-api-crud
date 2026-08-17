@@ -49,6 +49,18 @@
             </div>
             <div id="status-message" role="alert" hidden></div>
             <ul id="car-list"></ul>
+            <template id="car-item-template">
+                <li class="car-list-item card">
+                    <div>
+                        <strong class="car-title"></strong> (<span class="car-year"></span>) <br>
+                        <span class="car-color" style="font-size: 0.9rem; color: #777;"></span>
+                    </div>
+                    <div class="btn-group">
+                        <button data-action="edit" class="outline" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">Redigera</button>
+                        <button data-action="delete" class="outline contrast" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">Ta bort</button>
+                    </div>
+                </li>
+            </template>
         </section>
     </main>
     <script type="module" src="/src/main.js"></script>

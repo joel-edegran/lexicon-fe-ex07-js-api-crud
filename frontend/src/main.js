@@ -11,6 +11,7 @@ const formTitle     = document.getElementById('form-title');
 const submitBtn     = document.getElementById('submit-btn');
 const cancelBtn     = document.getElementById('cancel-btn');
 const statusMessage = document.getElementById('status-message');
+const carTemplate   = document.getElementById('car-item-template');
 
 // State
 let isCarsLoaded    = false;
@@ -20,26 +21,6 @@ let cars            = [];
 
 
 // Helper functions
-
-// Helper function to generate HTML template for a car item
-const createCarHTML = (car) => `
-    <div>
-        <strong>${car.brand} ${car.model}</strong> (${car.year}) <br>
-        <span style="font-size: 0.9rem; color: #777;">Färg: ${car.color}</span>
-    </div>
-    <div class="btn-group">
-        <button data-action="edit" class="outline" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">Redigera</button>
-        <button data-action="delete" class="outline contrast" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">Ta bort</button>
-    </div>`;
-
-// Helper function to render a car item in the list
-const renderCar = (car) => {
-    const carListItem = document.createElement('li');
-    carListItem.className = 'car-list-item card';
-    carListItem.dataset.id = car.id;
-    carListItem.innerHTML = createCarHTML(car);
-    carList.appendChild(carListItem);
-}
 
 // Helper function to format response status
 const formatStatus = (response) => `${response.status} (${response.statusText})`;
@@ -115,6 +96,24 @@ const clearMessage = () => {
     statusMessage.hidden = true;
 
 };
+
+// Helper function to populate car data into DOM elements
+const populateCarElement = (element, car) => {
+    element.querySelector('.car-title').textContent = `${car.brand} ${car.model} `;
+    element.querySelector('.car-year').textContent = car.year;
+    element.querySelector('.car-color').textContent = `Färg: ${car.color}`;
+};
+
+// Helper function to render a car item in the list
+const renderCar = (car) => {
+    const templateListItem = carTemplate.content.cloneNode(true);
+    const carListItem = templateListItem.querySelector('.car-list-item');
+    
+    carListItem.dataset.id = car.id;
+    populateCarElement(carListItem, car);
+
+    carList.appendChild(carListItem);
+}
 
 // Create
 const addCar = async (event) => {
@@ -233,7 +232,7 @@ const updateCar = async (id) => {
         // Update the car in the UI
         const carListItem = document.querySelector(`[data-id="${numericId}"]`);
         if (carListItem) {
-            carListItem.innerHTML = createCarHTML(updatedCar);
+            populateCarElement(carListItem, updatedCar);
             console.log(`Successfully updated car with ID ${numericId} in DOM.`);
         }
 
