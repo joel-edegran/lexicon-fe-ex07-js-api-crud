@@ -1,5 +1,7 @@
 # Exercise 7: "Cars" (JavaScript Fetch API & Full CRUD)
 
+![Application Preview](docs/preview.png)
+
 ## Project Purpose
 The purpose of this project is to build a full CRUD (Create, Read, Update, Delete) single-page application using modern JavaScript (ES6+), Fetch API with `async/await`, and an ASP.NET Core Minimal Web API backend. Managing a car database stored in SQLite, the application implements dynamic DOM updates, HTML `<template>` cloning, optimistic state caching, event delegation, and robust asynchronous error handling.
 
