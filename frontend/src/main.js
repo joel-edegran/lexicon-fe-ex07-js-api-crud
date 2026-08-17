@@ -99,7 +99,7 @@ const clearMessage = () => {
 
 // Helper function to populate car data into DOM elements
 const populateCarElement = (element, car) => {
-    element.querySelector('.car-title').textContent = `${car.brand} ${car.model} `;
+    element.querySelector('.car-title').textContent = `${car.brand} ${car.model}`;
     element.querySelector('.car-year').textContent = car.year;
     element.querySelector('.car-color').textContent = `Färg: ${car.color}`;
 };
@@ -173,8 +173,9 @@ const fetchCars = async () => {
         if (!response.ok) {
             throw new Error(`Error fetching cars: ${formatStatus(response)}`);
         }
-
+        
         cars = await response.json();
+        isCarsLoaded = true;
         console.log("Data from database:", cars);
         
         carList.innerHTML = "";
@@ -185,8 +186,6 @@ const fetchCars = async () => {
         }
 
         cars.forEach(car => renderCar(car));
-
-        isCarsLoaded = true;
 
     } catch (error) {
         console.error("Error:", error);
