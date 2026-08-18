@@ -1,6 +1,10 @@
+// Imports & Configurations
+
 import './style.css'
 
-const API_URL       = "http://localhost:5111/api/cars";
+const API_URL = "http://localhost:5111/api/cars";
+
+// DOM Elements
 
 const loadBtn       = document.getElementById('load-btn');
 const carList       = document.getElementById('car-list');
@@ -13,14 +17,12 @@ const cancelBtn     = document.getElementById('cancel-btn');
 const statusMessage = document.getElementById('status-message');
 const carTemplate   = document.getElementById('car-item-template');
 
-// State
+// Application State
+
 let isCarsLoaded    = false;
 let cars            = [];
 
-// Functions
-
-
-// Helper functions
+// Helper Functions
 
 // Helper function to format response status
 const formatStatus = (response) => `${response.status} (${response.statusText})`;
@@ -30,6 +32,53 @@ const logStatus = (response, label = '') => {
     const prefix = label ? `[${label}] ` : '';
     console.log(`${prefix}Status: ${formatStatus(response)}`);
 };
+
+// Helper functions for status messaging
+const showMessage = (message, type = 'info') => {
+    if (!statusMessage) return;
+
+    statusMessage.textContent = message;
+    statusMessage.className = `alert alert-${type}`;
+    statusMessage.hidden = false;
+};
+
+const clearMessage = () => {
+    if (!statusMessage) return;
+
+    statusMessage.textContent = '';
+    statusMessage.className = '';
+    statusMessage.hidden = true;
+
+};
+
+// Reset form and UI state after submission or cancellation
+const resetForm = () => {
+    form.reset();
+    carIdInput.value = '';
+    formTitle.textContent = "Lägg till ny bil";
+    submitBtn.textContent = "Lägg till";
+    cancelBtn.hidden = true;
+};
+
+// Helper function to populate car data into DOM elements
+const populateCarElement = (element, car) => {
+    element.querySelector('.car-title').textContent = `${car.brand} ${car.model}`;
+    element.querySelector('.car-year').textContent = car.year;
+    element.querySelector('.car-color').textContent = `Färg: ${car.color}`;
+};
+
+// Helper function to render a car item in the list
+const renderCar = (car) => {
+    const templateListItem = carTemplate.content.cloneNode(true);
+    const carListItem = templateListItem.querySelector('.car-list-item');
+    
+    carListItem.dataset.id = car.id;
+    populateCarElement(carListItem, car);
+
+    carList.appendChild(carListItem);
+}
+
+// Event Handlers & Form Dispatchers
 
 // Form submission dispatcher to handle both create and update operations
 const handleFormSubmit = async (event) => {
@@ -70,50 +119,33 @@ const handleCarListClick = (event) => {
     }
 };
 
-// Reset form and UI state after submission or cancellation
-const resetForm = () => {
-    form.reset();
-    carIdInput.value = '';
-    formTitle.textContent = "Lägg till ny bil";
-    submitBtn.textContent = "Lägg till";
-    cancelBtn.hidden = true;
-}
+// Prepare form for editing
+const prepareEdit = (id) => {
+    const numericId = Number(id);
 
-// Helper functions for status messaging
-const showMessage = (message, type = 'info') => {
-    if (!statusMessage) return;
-
-    statusMessage.textContent = message;
-    statusMessage.className = `alert alert-${type}`;
-    statusMessage.hidden = false;
-};
-
-const clearMessage = () => {
-    if (!statusMessage) return;
-
-    statusMessage.textContent = '';
-    statusMessage.className = '';
-    statusMessage.hidden = true;
-
-};
-
-// Helper function to populate car data into DOM elements
-const populateCarElement = (element, car) => {
-    element.querySelector('.car-title').textContent = `${car.brand} ${car.model}`;
-    element.querySelector('.car-year').textContent = car.year;
-    element.querySelector('.car-color').textContent = `Färg: ${car.color}`;
-};
-
-// Helper function to render a car item in the list
-const renderCar = (car) => {
-    const templateListItem = carTemplate.content.cloneNode(true);
-    const carListItem = templateListItem.querySelector('.car-list-item');
+    console.log("Setting up edit form for car ID:", numericId);
+    const car = cars.find(car => car.id === numericId);
     
-    carListItem.dataset.id = car.id;
-    populateCarElement(carListItem, car);
+    if (!car) {
+        console.error(`Car with ID ${numericId} not found.`);
+        return;
+    }
+    
+    console.log("Car to edit:", car);
+    carIdInput.value    = car.id;
+    form.brand.value    = car.brand;
+    form.model.value    = car.model;
+    form.year.value     = car.year;
+    form.color.value    = car.color;
 
-    carList.appendChild(carListItem);
-}
+    formTitle.textContent   = "Redigera bil";
+    submitBtn.textContent   = "Spara ändringar";
+    cancelBtn.hidden        = false;
+
+    formSection.scrollIntoView({ behavior: 'smooth' });
+};
+
+// API / CRUD Functions
 
 // Create
 const addCar = async (event) => {
@@ -298,37 +330,13 @@ const deleteCar = async (id) => {
     }
 };
 
-// Prepare form for editing
-const prepareEdit = (id) => {
-    const numericId = Number(id);
-
-    console.log("Setting up edit form for car ID:", numericId);
-    const car = cars.find(car => car.id === numericId);
-    
-    if (!car) {
-        console.error(`Car with ID ${numericId} not found.`);
-        return;
-    }
-    
-    console.log("Car to edit:", car);
-    carIdInput.value = car.id;
-    form.brand.value = car.brand;
-    form.model.value = car.model;
-    form.year.value = car.year;
-    form.color.value = car.color;
-
-    formTitle.textContent = "Redigera bil";
-    submitBtn.textContent = "Spara ändringar";
-    cancelBtn.hidden = false;
-
-    formSection.scrollIntoView({ behavior: 'smooth' });
-};
-
 // Event Listeners
+
 loadBtn.addEventListener('click', fetchCars);
 form.addEventListener('submit', handleFormSubmit);
 carList.addEventListener('click', handleCarListClick);
 cancelBtn.addEventListener('click', handleCancelClick);
 
-// Initial state
+// Application Initialization
+
 showMessage('Klicka på knappen för att ladda in bilar...', 'info');
