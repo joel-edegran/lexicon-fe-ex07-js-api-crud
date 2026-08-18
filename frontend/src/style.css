@@ -8,6 +8,29 @@ body>main {
     margin: 0 auto;
 }
 
+.form-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.btn-submit {
+    flex: 3;
+}
+
+.btn-cancel {
+    flex: 1;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.btn-auto-width {
+    width: auto;
+}
+
 #car-list {
     display: flex;
     flex-direction: column;
@@ -30,9 +53,19 @@ body>main {
     border-radius: 8px;
 }
 
+.car-color {
+    font-size: 0.9rem; 
+    color: #777;
+}
+
 .btn-group {
     display: flex;
     gap: 0.5rem;
+}
+
+.btn-small {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.8rem;
 }
 
 /* Knapp i redigeringsläge */

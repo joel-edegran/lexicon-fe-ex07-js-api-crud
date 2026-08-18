@@ -36,28 +36,28 @@
                         <input type="text" id="color" placeholder="t.ex. Silver" required>
                     </label>
                 </div>
-                <div style="display: flex; gap: 1rem;">
-                    <button type="submit" id="submit-btn" style="flex: 3;">Lägg till bil</button>
-                    <button type="button" id="cancel-btn" class="secondary" style="flex: 1;" hidden>Avbryt</button>
+                <div class="form-actions">
+                    <button type="submit" id="submit-btn" class="btn-submit">Lägg till bil</button>
+                    <button type="button" id="cancel-btn" class="secondary btn-cancel" hidden>Avbryt</button>
                 </div>
             </form>
         </section>
         <section>
-            <div style="display: flex; justify-content: space-between; align-items: center;">
+            <header class="section-header">
                 <h3>Våra bilar i databasen</h3>
-                <button id="load-btn" class="secondary" style="width: auto;">Hämta bilar</button>
-            </div>
+                <button id="load-btn" class="secondary btn-auto-width">Hämta bilar</button>
+            </header>
             <div id="status-message" role="alert" hidden></div>
             <ul id="car-list"></ul>
             <template id="car-item-template">
                 <li class="car-list-item card">
                     <div>
                         <strong class="car-title"></strong> (<span class="car-year"></span>) <br>
-                        <span class="car-color" style="font-size: 0.9rem; color: #777;"></span>
+                        <span class="car-color"></span>
                     </div>
                     <div class="btn-group">
-                        <button data-action="edit" class="outline" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">Redigera</button>
-                        <button data-action="delete" class="outline contrast" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">Ta bort</button>
+                        <button data-action="edit" class="outline btn-small">Redigera</button>
+                        <button data-action="delete" class="outline contrast btn-small">Ta bort</button>
                     </div>
                 </li>
             </template>
