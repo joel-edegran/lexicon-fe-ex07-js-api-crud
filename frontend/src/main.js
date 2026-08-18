@@ -33,6 +33,23 @@ const logStatus = (response, label = '') => {
     console.log(`${prefix}Status: ${formatStatus(response)}`);
 };
 
+// Helper to parse backend response message (string text or JSON)
+const getResponseMessage = async (response) => {
+    try {
+        const clonedResponse = response.clone();
+        const contentType = clonedResponse.headers.get('content-type');
+        
+        if (contentType?.includes('application/json')) {
+            const data = await clonedResponse.json();
+            return data?.message || data?.Message || null;
+        }
+        const text = await clonedResponse.text();
+        return text.trim() || null;
+    } catch {
+        return null;
+    }
+};
+
 // Helper functions for status messaging
 const showMessage = (message, type = 'info') => {
     if (!statusMessage) return;
@@ -170,8 +187,11 @@ const addCar = async (event) => {
         logStatus(response, "Create");
 
         if (!response.ok) {
-            throw new Error(`Error creating car: ${formatStatus(response)}`);
+            const errorMsg = await getResponseMessage(response);
+            throw new Error(errorMsg || `Error creating car: ${formatStatus(response)}`);
         }
+
+        console.log("Create car:", carData);
 
         if (!isCarsLoaded) {
             // If the list of cars hasn't been loaded yet, fetch and render all cars
@@ -179,9 +199,14 @@ const addCar = async (event) => {
         } else {
             // If the list of cars is already loaded, just render the new car
             const car = await response.json();
+
+            if (!car || typeof car !== 'object') {
+                throw new Error('Mottog ogiltig bildata från servern.');
+            }
+
             cars.push(car); // Update the cached list of cars
             renderCar(car);
-            console.log("Adding car to list from response:", car);
+            console.log("Render car from response:", car);
         }
         
         resetForm();
@@ -189,7 +214,7 @@ const addCar = async (event) => {
 
     } catch (error) {
         console.error("Error:", error);
-        showMessage('Could not add car.', 'danger');
+        showMessage(error.message || 'Could not add car.', 'danger');
     }
     
 };
@@ -203,12 +228,19 @@ const fetchCars = async () => {
         logStatus(response, "Read");
         
         if (!response.ok) {
-            throw new Error(`Error fetching cars: ${formatStatus(response)}`);
+            const errorMsg = await getResponseMessage(response);
+            throw new Error(errorMsg || `Error fetching cars: ${formatStatus(response)}`);
         }
         
-        cars = await response.json();
+        const data = await response.json();
+
+        if (!Array.isArray(data)) {
+            throw new Error('Mottog ogiltigt dataformat från servern.');
+        }
+
+        cars = data;
         isCarsLoaded = true;
-        console.log("Data from database:", cars);
+        console.log("Fetch cars from database:", cars);
 
         carList.replaceChildren(); // Clear DOM elements
         
@@ -221,7 +253,7 @@ const fetchCars = async () => {
 
     } catch (error) {
         console.error("Error:", error);
-        showMessage('Could not fetch cars.', 'danger');
+        showMessage(error.message || 'Could not fetch cars.', 'danger');
     }
 };
 
@@ -250,7 +282,8 @@ const updateCar = async (id) => {
         logStatus(response, "Update");
 
         if (!response.ok) {
-            throw new Error(`Error updating car: ${formatStatus(response)}`);
+            const errorMsg = await getResponseMessage(response);
+            throw new Error(errorMsg || `Error updating car: ${formatStatus(response)}`);
         }
 
         // Build updated object directly from form data when API returns 204 No Content
@@ -258,7 +291,6 @@ const updateCar = async (id) => {
             id: numericId,
             ...carData
         };
-        console.log(updatedCar);
 
         // Update the car in the UI
         const carListItem = document.querySelector(`[data-id="${numericId}"]`);
@@ -278,30 +310,27 @@ const updateCar = async (id) => {
 
     } catch (error) {
         console.error("Error:", error);
-        showMessage('Could not update car.', 'danger');
+        showMessage(error.message || 'Could not update car.', 'danger');
     }
 };
 
 // Delete
 const deleteCar = async (id) => {
     clearMessage();
-
     const numericId = Number(id);
 
-    if (!confirm("Är du säker på att du vill ta bort bilen?")) {
-        return;
-    }
+    if (!confirm("Är du säker på att du vill ta bort bilen?")) return;
 
     try {
-        const response = await fetch(`${API_URL}/${numericId}`, {
-            method: 'DELETE'
-        });
-
+        const response = await fetch(`${API_URL}/${numericId}`, { method: 'DELETE' });
         logStatus(response, "Delete");
 
         if (!response.ok) {
-            throw new Error(`Error deleting car: ${formatStatus(response)}`);
+            const errorMsg = await getResponseMessage(response);
+            throw new Error(errorMsg || `Error deleting car: ${formatStatus(response)}`);
         }
+
+        const successData = await getResponseMessage(response);
 
         // Reset form if the car being deleted is currently loaded in the edit form
         if (Number(carIdInput.value) === numericId) {
@@ -318,15 +347,17 @@ const deleteCar = async (id) => {
         // Update the cached list of cars
         cars = cars.filter(car => car.id !== numericId); 
 
+        const statusText = successData || 'Bilen har tagits bort!';
+
         if (cars.length === 0) {
-            showMessage('Det finns inga bilar i databasen.', 'info');
+            showMessage(`${statusText} Det finns inga bilar i databasen.`, 'info');
         } else {
-            showMessage('Bilen har tagits bort!', 'success');
+            showMessage(statusText, 'success');
         }
 
     } catch (error) {
         console.error("Error:", error);
-        showMessage('Could not delete car.', 'danger');
+        showMessage(error.message || 'Could not delete car.', 'danger');
     }
 };
 
