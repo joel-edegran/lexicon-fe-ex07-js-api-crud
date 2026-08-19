@@ -36,15 +36,22 @@ const logStatus = (response, label = '') => {
 // Helper to parse backend response message (string text or JSON)
 const getResponseMessage = async (response) => {
     try {
-        const clonedResponse = response.clone();
-        const contentType = clonedResponse.headers.get('content-type');
-        
+        const text = (await response.clone().text()).trim();
+        if (!text) return null;
+
+        const contentType = response.headers.get('content-type') || '';
         if (contentType?.includes('application/json')) {
-            const data = await clonedResponse.json();
-            return data?.message || data?.Message || null;
+            try {
+                const data = JSON.parse(text);
+                if (typeof data === 'string') return data;
+                if (data && typeof data === 'object') {
+                    return data?.message || data?.Message || data?.title || data?.detail || text;
+                }
+            } catch {
+                return text;
+            }
         }
-        const text = await clonedResponse.text();
-        return text.trim() || null;
+        return text;
     } catch {
         return null;
     }
@@ -108,7 +115,7 @@ const handleFormSubmit = async (event) => {
         await updateCar(carID);
     } else {
         // Create new car
-        await addCar(event);
+        await addCar();
     }
 };
 
@@ -165,7 +172,7 @@ const prepareEdit = (id) => {
 // API / CRUD Functions
 
 // Create
-const addCar = async (event) => {
+const addCar = async () => {
     clearMessage();
 
     const carData = {
@@ -213,7 +220,7 @@ const addCar = async (event) => {
         showMessage('Bilen har lagts till!', 'success');
 
     } catch (error) {
-        console.error("Error:", error);
+        console.error(error);
         showMessage(error.message || 'Could not add car.', 'danger');
     }
     
@@ -252,7 +259,7 @@ const fetchCars = async () => {
         cars.forEach(car => renderCar(car));
 
     } catch (error) {
-        console.error("Error:", error);
+        console.error(error);
         showMessage(error.message || 'Could not fetch cars.', 'danger');
     }
 };
@@ -309,7 +316,7 @@ const updateCar = async (id) => {
         showMessage('Bilen har uppdaterats!', 'success');
 
     } catch (error) {
-        console.error("Error:", error);
+        console.error(error);
         showMessage(error.message || 'Could not update car.', 'danger');
     }
 };
@@ -356,7 +363,7 @@ const deleteCar = async (id) => {
         }
 
     } catch (error) {
-        console.error("Error:", error);
+        console.error(error);
         showMessage(error.message || 'Could not delete car.', 'danger');
     }
 };
