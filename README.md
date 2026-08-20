@@ -6,7 +6,7 @@
 The purpose of this project is to build a full CRUD (Create, Read, Update, Delete) single-page application using modern JavaScript (ES6+), Fetch API with `async/await`, and an ASP.NET Core Minimal Web API backend. Managing a car database stored in SQLite, the application implements dynamic DOM updates, HTML `<template>` cloning, optimistic state caching, event delegation, and robust asynchronous error handling.
 
 ## Core Technologies
-* **JavaScript (ES6+):** Asynchronous architecture utilizing `async/await`, `fetch()` API calls, array manipulation, local state caching, and event delegation.
+* **JavaScript (ES Modules & SoC):** Modular architecture implementing Separation of Concerns across dedicated layers (`api.js`, `ui.js`, and `main.js`), utilizing `async/await`, `fetch()` API calls, array manipulation, local state caching, and event delegation.
 * **REST API & .NET:** ASP.NET Core Minimal API targeting .NET 10 with SQLite (`cars.db`), serving endpoints for full HTTP CRUD operations (`GET`, `POST`, `PUT`, `DELETE`).
 * **DOM API & HTML5 Templates:** Dynamic DOM population using `<template>` cloning (`cloneNode`), DOM node clearing via `replaceChildren()`, and dataset attribute routing (`data-id`, `data-action`).
 * **Vite:** High-performance frontend development server providing Hot Module Replacement (HMR) and production bundling.
@@ -35,11 +35,11 @@ The repository contains a decoupled architecture with a `.NET 10` Web API backen
  ├── frontend/              # Vite-powered frontend application
  │   ├── dist/              # Generated upon production build (tracked in .gitignore)
  │   ├── public/            # Static application icons and assets
- │   │   ├── favicon.svg
- │   │   └── icons.svg
- │   ├── src/               # Frontend source code
- │   │   ├── main.js        # Primary JavaScript logic and API interaction
- │   │   └── style.css      # Custom UI styles
+ │   ├── src/                # Frontend source code
+ │   │   ├── api.js          # REST API communication layer and status logging
+ │   │   ├── main.js         # Application entry point, state, and event orchestration
+ │   │   ├── ui.js           # DOM manipulation, form handling, and UI rendering
+ │   │   └── style.css       # Custom UI styles
  │   ├── .gitignore
  │   ├── index.html         # Application entry point containing HTML template
  │   ├── package-lock.json
